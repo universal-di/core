@@ -1,0 +1,15 @@
+{
+    "extends": "./tsconfig.json",
+    "compilerOptions": {
+        "outDir": "./dist",
+        "declaration": true,
+        "declarationMap": true,
+        "inlineSources": false,
+        "allowSyntheticDefaultImports": true,
+        "moduleResolution": "node",
+        "jsx": "react-jsx",
+        "types": ["reflect-metadata"]
+    },
+    "exclude": ["src/test-setup.ts", "src/**/*.spec.ts", "jest.config.ts", "src/**/*.test.ts", "node_modules/**/*"],
+    "include": ["src/**/*.ts"]
+}

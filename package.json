@@ -1,0 +1,40 @@
+{
+    "name": "@universal-di/core",
+    "version": "0.0.1",
+    "description": "Universal Dependency Injection for Typescript with Angular-like API",
+    "scripts": {
+        "build": "tsc -p tsconfig.lib.json",
+        "test": "vitest",
+        "test:ci": "vitest run"
+    },
+    "author": "Szymon Gracki <dev.sgracki@gmail.com>",
+    "license": "MIT",
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/universal-di/core.git"
+    },
+    "homepage": "https://github.com/universal-di/core",
+    "devDependencies": {
+        "@swc/core": "^1.3.101",
+        "@types/node": "^8.0.31",
+        "rollup-plugin-swc": "^0.2.1",
+        "typescript": "5.3.3",
+        "vitest": "^1.1.0"
+    },
+    "dependencies": {
+        "reflect-metadata": "0.2.1"
+    },
+    "bugs": {
+        "url": "https://github.com/universal-di/core/issues"
+    },
+    "main": "./dist/index.js",
+    "module": "./dist/index.js",
+    "types": "./dist/index.d.ts",
+    "keywords": [
+        "universal",
+        "dependency",
+        "injection",
+        "solid",
+        "di"
+    ]
+}
