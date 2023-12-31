@@ -155,14 +155,14 @@ analyticsService.track('application-started');
 [license-image]: https://img.shields.io/badge/license-MIT-blue.svg
 [license]: LICENSE.md
 
-[github-action-image]: https://github.com/szymeo/universal-di.core/actions/workflows/build-and-publish.yml/badge.svg
-[github-action-url]: https://github.com/szymeo/universal-di.core/actions/workflows/build-and-publish.yml
+[github-action-image]: https://github.com/universal-di/core/actions/workflows/build-and-publish.yml/badge.svg
+[github-action-url]: https://github.com/universal-di/core/actions/workflows/build-and-publish.yml
 
 [npm-url]: https://npmjs.org/package/@universal-di/core
 [npm-version-image]: https://badge.fury.io/js/@universal-di/core.svg
 
-[test-coverage-url]: https://codecov.io/gh/szymeo/universal-di.core
-[test-coverage-image]: https://codecov.io/gh/szymeo/universal-di.core/branch/master/graph/badge.svg
+[test-coverage-url]: https://codecov.io/gh/universal-di/core
+[test-coverage-image]: https://codecov.io/gh/universal-di/core/branch/master/graph/badge.svg
 
-[contributing-url]: https://github.com/szymeo/universal-di.core/blob/master/CONTRIBUTING.md
+[contributing-url]: https://github.com/universal-di/core/blob/master/CONTRIBUTING.md
 [contributing-image]: https://img.shields.io/badge/PRs-welcome-brightgreen.svg

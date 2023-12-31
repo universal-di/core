@@ -1,6 +1,6 @@
 {
     "name": "@universal-di/core",
-    "version": "0.0.1",
+    "version": "0.0.2",
     "description": "Universal Dependency Injection for Typescript with Angular-like API",
     "scripts": {
         "build": "tsc -p tsconfig.lib.json",
