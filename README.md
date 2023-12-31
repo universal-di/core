@@ -143,7 +143,8 @@ And use
 ```tsx
 const application = new DIApplication(AppModule);
 
-const analyticsService = application.rootInjector.get(ANALYTICS_SERVICE); // AnalyticsService type is inferred here
+// AnalyticsService type is inferred here
+const analyticsService = application.rootInjector.get(ANALYTICS_SERVICE);
 
 analyticsService.track('application-started');
 ```
