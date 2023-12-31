@@ -9,7 +9,8 @@ describe.skip('DIApplication', () => {
 
     it('creates application with a root module', () => {
         @Module({})
-        class RootModule {}
+        class RootModule {
+        }
 
         Application = new DIApplication(RootModule);
 
@@ -18,17 +19,20 @@ describe.skip('DIApplication', () => {
 
     it('creates application with modules tree', () => {
         @Injectable()
-        class ChildProvider {}
+        class ChildProvider {
+        }
 
         @Module({
             providers: [ChildProvider],
         })
-        class ChildModule {}
+        class ChildModule {
+        }
 
         @Module({
             imports: [ChildModule],
         })
-        class RootModule {}
+        class RootModule {
+        }
 
         Application = new DIApplication(RootModule);
 
@@ -37,17 +41,20 @@ describe.skip('DIApplication', () => {
 
     it('instantiates new modules for each app', () => {
         @Injectable()
-        class ChildProvider {}
+        class ChildProvider {
+        }
 
         @Module({
             providers: [ChildProvider],
         })
-        class ChildModule {}
+        class ChildModule {
+        }
 
         @Module({
             imports: [ChildModule],
         })
-        class RootModule {}
+        class RootModule {
+        }
 
         const ApplicationA = new DIApplication(RootModule);
         const ApplicationB = new DIApplication(RootModule);

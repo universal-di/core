@@ -30,7 +30,8 @@ describe('DIModule', () => {
         const nestedStubProviderHandleSpy = vi.fn();
 
         @Injectable()
-        class MultiStubProvider {}
+        class MultiStubProvider {
+        }
 
         @Injectable()
         class NestedStubProvider {
@@ -38,7 +39,8 @@ describe('DIModule', () => {
                 @Inject(MY_TOKEN) readonly myToken: string,
                 @Inject(MY_MULTI_TOKEN) readonly myMultiToken: string[],
                 @Inject(MY_CLASS_MULTI_TOKEN) readonly myClassMultiToken: MultiStubProvider[],
-            ) {}
+            ) {
+            }
 
             handle(): void {
                 nestedStubProviderHandleSpy(this.myToken, this.myMultiToken, this.myClassMultiToken);
@@ -47,7 +49,8 @@ describe('DIModule', () => {
 
         @Injectable()
         class StubProvider {
-            constructor(readonly _nestedStubProvider: NestedStubProvider) {}
+            constructor(readonly _nestedStubProvider: NestedStubProvider) {
+            }
 
             handle(): void {
                 this._nestedStubProvider.handle();
@@ -103,7 +106,8 @@ describe('DIModule', () => {
             constructor(
                 @Inject(MY_TOKEN) readonly myToken: string,
                 @Inject(MY_MULTI_TOKEN) readonly myMultiToken: string[],
-            ) {}
+            ) {
+            }
 
             handle(): void {
                 nestedStubProviderHandleSpy(this.myToken, this.myMultiToken);
@@ -180,7 +184,8 @@ describe('DIModule', () => {
 
         @Injectable()
         class StubProvider {
-            constructor(@Inject(MY_TOKEN) readonly myToken: string) {}
+            constructor(@Inject(MY_TOKEN) readonly myToken: string) {
+            }
 
             handle(): void {
                 nestedStubProviderHandleSpy();
@@ -218,7 +223,8 @@ describe('DIModule', () => {
 
     it('allows for a shared module in root imports', () => {
         @Injectable()
-        class StubProvider {}
+        class StubProvider {
+        }
 
         const SharedModule = new DIModule({
             imports: [],
@@ -247,7 +253,8 @@ describe('DIModule', () => {
 
     it('allows root child to import another root child', () => {
         @Injectable()
-        class StubProvider {}
+        class StubProvider {
+        }
 
         const SharedModule = new DIModule({
             imports: [],
@@ -273,11 +280,13 @@ describe('DIModule', () => {
         const nestedStubProviderHandleSpy = vi.fn();
 
         @Injectable()
-        class StubProvider {}
+        class StubProvider {
+        }
 
         @Injectable()
         class StubProvider2 {
-            constructor(readonly stubProvider: StubProvider) {}
+            constructor(readonly stubProvider: StubProvider) {
+            }
 
             handle(): void {
                 nestedStubProviderHandleSpy(this.stubProvider);
@@ -318,16 +327,20 @@ describe('DIModule', () => {
 
         @Injectable()
         class StubProvider2 {
-            constructor(readonly stubProvider: StubProvider) {}
+            constructor(readonly stubProvider: StubProvider) {
+            }
 
-            method(): void {}
+            method(): void {
+            }
         }
 
         @Injectable()
         class StubProvider3 {
-            constructor(readonly stubProvider: StubProvider) {}
+            constructor(readonly stubProvider: StubProvider) {
+            }
 
-            method(): void {}
+            method(): void {
+            }
         }
 
         const SharedModule = new DIModule({
@@ -356,16 +369,20 @@ describe('DIModule', () => {
 
     it('provides from root to leaf nodes', () => {
         @Injectable()
-        class StubProvider {}
+        class StubProvider {
+        }
 
         @Injectable()
-        class StubProvider2 {}
+        class StubProvider2 {
+        }
 
         @Injectable()
         class StubProviderFromChild {
-            constructor(readonly stubProvider: StubProvider, readonly stubProvider2: StubProvider2) {}
+            constructor(readonly stubProvider: StubProvider, readonly stubProvider2: StubProvider2) {
+            }
 
-            method(): void {}
+            method(): void {
+            }
         }
 
         const ChildModule = new DIModule({
@@ -390,19 +407,23 @@ describe('DIModule', () => {
 
     it('provides from multiple modules', () => {
         @Injectable()
-        class StubProviderFromParentA {}
+        class StubProviderFromParentA {
+        }
 
         @Injectable()
-        class StubProviderFromParentB {}
+        class StubProviderFromParentB {
+        }
 
         @Injectable()
         class StubProviderFromChild {
             constructor(
                 readonly stubProvider: StubProviderFromParentA,
                 readonly stubProvider2: StubProviderFromParentB,
-            ) {}
+            ) {
+            }
 
-            method(): void {}
+            method(): void {
+            }
         }
 
         const ChildModule = new DIModule({
@@ -430,10 +451,12 @@ describe('DIModule', () => {
 
     it('stacks multi from different modules', () => {
         @Injectable()
-        class StubProviderFromChildA {}
+        class StubProviderFromChildA {
+        }
 
         @Injectable()
-        class StubProviderFromChildB {}
+        class StubProviderFromChildB {
+        }
 
         const TOKEN = new InjectionToken('TOKEN');
 

@@ -112,7 +112,7 @@ export class DIContainer {
         const injectedParamsTypes = Reflect.getMetadata(DIContainer.REFLECT_PARAMS, target) as (
             | InjectableParam
             | undefined
-        )[];
+            )[];
 
         if (!isDefined(injectedParamsTypes)) {
             return [];

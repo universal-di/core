@@ -10,7 +10,7 @@ type Prototype<T> = {
 } & { constructor: NewableFunction };
 
 interface ConstructorFunction<T = Record<string, unknown>> {
-    new (...args: unknown[]): T;
+    new(...args: unknown[]): T;
 
     prototype: Prototype<T>;
 }

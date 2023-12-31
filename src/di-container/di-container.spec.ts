@@ -22,7 +22,8 @@ describe('DIContainer', () => {
 
     describe('registering providers', () => {
         @Injectable()
-        class StubProvider {}
+        class StubProvider {
+        }
 
         it('registers class token provider', () => {
             diContainer.addProvider(StubProvider);
@@ -162,7 +163,8 @@ describe('DIContainer', () => {
         it('throws error when injected param (value token) value was not found', () => {
             @Injectable()
             class StubProvider {
-                constructor(@Inject(MY_VALUE_TOKEN) private readonly myValueToken: string) {}
+                constructor(@Inject(MY_VALUE_TOKEN) private readonly myValueToken: string) {
+                }
             }
 
             diContainer.addProvider(StubProvider);
@@ -175,7 +177,8 @@ describe('DIContainer', () => {
         it('throws error when injected param (class token) value was not found', () => {
             @Injectable()
             class StubProvider {
-                constructor(private readonly _nestedStubProvider: NestedStubProvider) {}
+                constructor(private readonly _nestedStubProvider: NestedStubProvider) {
+                }
             }
 
             diContainer.addProvider(StubProvider);
