@@ -1,10 +1,10 @@
 /* eslint-disable-next-line max-classes-per-file */
-import { DIContainer } from '../di-container/di-container';
-import { InjectionToken, Token } from '../models';
+import { DIContainer } from "../di-container/di-container";
+import { InjectionToken, Token } from "../models";
 
 class NotReadyInjector extends DIContainer {
     override get<T>(token: Token<T> | InjectionToken<T>): T {
-        logger.error(`Tried to get ${token}, but injector isn't ready yet`);
+        console.error(`Tried to get ${token}, but injector isn't ready yet`);
         return super.get(token);
     }
 }
