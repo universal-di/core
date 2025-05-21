@@ -1,24 +1,25 @@
-import 'reflect-metadata';
-import {InvalidModuleConfigError} from '../errors/invalid-module-config.error';
-import {Provider} from '../models/provider.model';
-import {Class} from '../types';
+import { InvalidModuleConfigError } from "../../errors";
+import { Provider } from "../../models/provider.model";
+import { Class } from "../../types.js";
 
-export const DI_MODULE_METADATA_KEY = Symbol('DI:MODULE_METADATA_KEY');
+export const DI_MODULE_METADATA_KEY = Symbol("DI:MODULE_METADATA_KEY");
 
 export type DIModuleMetadata = {
-    imports?: Class[];
+    imports?: Class<any>[];
     providers?: Provider[];
+    exports?: Provider[];
 };
 
 const DIModuleMetadataKeys = {
-    IMPORTS: 'imports',
-    PROVIDERS: 'providers',
+    IMPORTS: "imports",
+    PROVIDERS: "providers",
+    EXPORTS: "exports",
 };
 
 const metadataKeys = Object.values(DIModuleMetadataKeys);
 
 function validateModuleKeys(keys: string[]): void {
-    keys.forEach(key => {
+    keys.forEach((key) => {
         if (!metadataKeys.includes(key)) {
             throw new InvalidModuleConfigError(key);
         }
@@ -32,4 +33,8 @@ export function Module(metadata: DIModuleMetadata): ClassDecorator {
     return (target: Function) => {
         Reflect.defineMetadata(DI_MODULE_METADATA_KEY, metadata, target);
     };
+}
+
+export function getModuleConfig<T>(target: Class<T>): DIModuleMetadata {
+    return Reflect.getMetadata(DI_MODULE_METADATA_KEY, target);
 }

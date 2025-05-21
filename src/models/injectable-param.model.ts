@@ -1,3 +1,3 @@
-import {Class} from "../types";
+import { Class } from "../types.js";
 
-export type InjectableParam = Class;
+export type InjectableParam = Class<any>;

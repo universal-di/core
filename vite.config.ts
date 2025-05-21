@@ -1,7 +1,7 @@
 // @ts-ignore
-import {defineConfig} from 'vite'
+import { defineConfig } from "vite";
 // @ts-ignore
-import swc from 'rollup-plugin-swc';
+import swc from "rollup-plugin-swc";
 
 export default defineConfig({
     plugins: [
@@ -18,12 +18,12 @@ export default defineConfig({
                     decoratorMetadata: true,
                 },
             },
-        })
+        }),
     ],
     test: {
         globals: true,
-        environment: 'jsdom',
-        setupFiles: './tests-setup.js',
+        // environment: 'jsdom',
+        setupFiles: "./tests-setup.js",
     },
     esbuild: false,
 });

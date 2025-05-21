@@ -1,14 +1,15 @@
-import {Inject, Injectable} from '../decorators';
-import {DIModule} from './di-module';
-import {InjectionToken} from '../models';
-import {describe, expect, it, vi} from 'vitest';
+/* eslint-disable max-classes-per-file */
+import { Inject, Injectable, InjectFactory } from "../decorators";
+import { Factory, InjectionToken } from "../models";
+import { DIModule } from "./di-module";
+import { describe, it, expect, vi } from "vitest";
 
-describe('DIModule', () => {
-    const MY_TOKEN = new InjectionToken('MY_TOKEN');
-    const MY_MULTI_TOKEN = new InjectionToken('MY_MULTI_TOKEN');
-    const MY_CLASS_MULTI_TOKEN = new InjectionToken('MY_CLASS_MULTI_TOKEN');
+describe("DIModule", () => {
+    const MY_TOKEN = new InjectionToken("MY_TOKEN");
+    const MY_MULTI_TOKEN = new InjectionToken("MY_MULTI_TOKEN");
+    const MY_CLASS_MULTI_TOKEN = new InjectionToken("MY_CLASS_MULTI_TOKEN");
 
-    it('creates a module', () => {
+    it("creates a module", () => {
         const Module = new DIModule({
             imports: [],
             providers: [],
@@ -17,40 +18,42 @@ describe('DIModule', () => {
         expect(Module).toBeTruthy();
     });
 
-    it('does not bootstrap module twice', () => {
+    it("does not bootstrap module twice", () => {
         const Module = new DIModule({
             imports: [],
             providers: [],
         }).bootstrap();
 
-        expect(() => Module.bootstrap()).toThrow('Module already bootstrapped');
+        expect(() => Module.bootstrap()).toThrow("Module already bootstrapped");
     });
 
-    it('injects providers', () => {
+    it("injects providers", () => {
         const nestedStubProviderHandleSpy = vi.fn();
 
         @Injectable()
-        class MultiStubProvider {
-        }
+        class MultiStubProvider {}
 
         @Injectable()
         class NestedStubProvider {
             constructor(
                 @Inject(MY_TOKEN) readonly myToken: string,
                 @Inject(MY_MULTI_TOKEN) readonly myMultiToken: string[],
-                @Inject(MY_CLASS_MULTI_TOKEN) readonly myClassMultiToken: MultiStubProvider[],
-            ) {
-            }
+                @Inject(MY_CLASS_MULTI_TOKEN)
+                readonly myClassMultiToken: MultiStubProvider[]
+            ) {}
 
             handle(): void {
-                nestedStubProviderHandleSpy(this.myToken, this.myMultiToken, this.myClassMultiToken);
+                nestedStubProviderHandleSpy(
+                    this.myToken,
+                    this.myMultiToken,
+                    this.myClassMultiToken
+                );
             }
         }
 
         @Injectable()
         class StubProvider {
-            constructor(readonly _nestedStubProvider: NestedStubProvider) {
-            }
+            constructor(readonly _nestedStubProvider: NestedStubProvider) {}
 
             handle(): void {
                 this._nestedStubProvider.handle();
@@ -64,16 +67,16 @@ describe('DIModule', () => {
                 NestedStubProvider,
                 {
                     provide: MY_TOKEN,
-                    useValue: 'my_token_value',
+                    useValue: "my_token_value",
                 },
                 {
                     provide: MY_MULTI_TOKEN,
-                    useValue: 'my_multi_token_value1',
+                    useValue: "my_multi_token_value1",
                     multi: true,
                 },
                 {
                     provide: MY_MULTI_TOKEN,
-                    useValue: 'my_multi_token_value2',
+                    useValue: "my_multi_token_value2",
                     multi: true,
                 },
                 {
@@ -89,25 +92,24 @@ describe('DIModule', () => {
             ],
         }).bootstrap();
 
-        (Module.injector.get(StubProvider) as StubProvider).handle();
+        Module.injector.get(StubProvider).handle();
 
         expect(nestedStubProviderHandleSpy).toHaveBeenCalledWith(
-            'my_token_value',
-            ['my_multi_token_value1', 'my_multi_token_value2'],
-            [expect.any(MultiStubProvider), expect.any(MultiStubProvider)],
+            "my_token_value",
+            ["my_multi_token_value1", "my_multi_token_value2"],
+            [expect.any(MultiStubProvider), expect.any(MultiStubProvider)]
         );
     });
 
-    it('creates tree from imported modules', () => {
+    it("creates tree from imported modules", () => {
         const nestedStubProviderHandleSpy = vi.fn();
 
         @Injectable()
         class StubProvider {
             constructor(
                 @Inject(MY_TOKEN) readonly myToken: string,
-                @Inject(MY_MULTI_TOKEN) readonly myMultiToken: string[],
-            ) {
-            }
+                @Inject(MY_MULTI_TOKEN) readonly myMultiToken: string[]
+            ) {}
 
             handle(): void {
                 nestedStubProviderHandleSpy(this.myToken, this.myMultiToken);
@@ -116,39 +118,42 @@ describe('DIModule', () => {
 
         const ChildModule = new DIModule({
             imports: [],
-            providers: [StubProvider],
+            providers: [
+                StubProvider,
+                {
+                    provide: MY_TOKEN,
+                    useValue: "my_token_value",
+                },
+                {
+                    provide: MY_MULTI_TOKEN,
+                    useValue: "my_multi_token_value1",
+                    multi: true,
+                },
+                {
+                    provide: MY_MULTI_TOKEN,
+                    useValue: "my_multi_token_value2",
+                    multi: true,
+                },
+            ],
+            exports: [StubProvider],
         });
 
         const MainModule = new DIModule({
             imports: [ChildModule],
-            providers: [
-                {
-                    provide: MY_TOKEN,
-                    useValue: 'my_token_value',
-                },
-                {
-                    provide: MY_MULTI_TOKEN,
-                    useValue: 'my_multi_token_value1',
-                    multi: true,
-                },
-                {
-                    provide: MY_MULTI_TOKEN,
-                    useValue: 'my_multi_token_value2',
-                    multi: true,
-                },
-            ],
         }).bootstrap();
 
-        (ChildModule.injector.get(StubProvider) as StubProvider).handle();
+        ChildModule.injector.get(StubProvider).handle();
 
-        expect(() => MainModule.injector.get(StubProvider)).not.toThrowError('No provider for StubProvider');
-        expect(nestedStubProviderHandleSpy).toHaveBeenCalledWith('my_token_value', [
-            'my_multi_token_value1',
-            'my_multi_token_value2',
-        ]);
+        expect(() => MainModule.injector.get(StubProvider)).not.toThrowError(
+            "No provider for StubProvider"
+        );
+        expect(nestedStubProviderHandleSpy).toHaveBeenCalledWith(
+            "my_token_value",
+            ["my_multi_token_value1", "my_multi_token_value2"]
+        );
     });
 
-    it('provider from imported module is global', () => {
+    it("provider from imported module is not global", () => {
         const nestedStubProviderHandleSpy = vi.fn();
 
         @Injectable()
@@ -173,19 +178,20 @@ describe('DIModule', () => {
             providers: [],
         }).bootstrap();
 
-        (RootModule.injector.get(StubProvider) as StubProvider).handle();
-
-        expect(nestedStubProviderHandleSpy).toHaveBeenCalled();
-        expect(() => ChildModule.injector.get(StubProvider)).not.toThrowError('No provider for StubProvider');
+        expect(() => RootModule.injector.get(StubProvider)).toThrowError(
+            "No provider for StubProvider"
+        );
+        expect(() => ChildModule.injector.get(StubProvider)).toThrowError(
+            "No provider for StubProvider"
+        );
     });
 
-    it('should throw specific error messages', () => {
+    it("should throw specific error messages", () => {
         const nestedStubProviderHandleSpy = vi.fn();
 
         @Injectable()
         class StubProvider {
-            constructor(@Inject(MY_TOKEN) readonly myToken: string) {
-            }
+            constructor(@Inject(MY_TOKEN) readonly myToken: string) {}
 
             handle(): void {
                 nestedStubProviderHandleSpy();
@@ -203,11 +209,11 @@ describe('DIModule', () => {
         }).bootstrap();
 
         expect(() => ChildModule.injector.get(StubProvider)).toThrowError(
-            'No provider for MY_TOKEN found in StubProvider',
+            "No provider for MY_TOKEN found in StubProvider"
         );
     });
 
-    it('should not allow to register provider after bootstrapping', () => {
+    it("should not allow to register provider after bootstrapping", () => {
         const RootModule = new DIModule({
             imports: [],
             providers: [],
@@ -216,15 +222,16 @@ describe('DIModule', () => {
         expect(() =>
             RootModule.addProvider({
                 provide: MY_TOKEN,
-                useValue: 'foo',
-            }),
-        ).toThrowError('Cannot add providers after module has been bootstrapped');
+                useValue: "foo",
+            })
+        ).toThrowError(
+            "Cannot add providers after module has been bootstrapped"
+        );
     });
 
-    it('allows for a shared module in root imports', () => {
+    it("allows for a shared module in root imports", () => {
         @Injectable()
-        class StubProvider {
-        }
+        class StubProvider {}
 
         const SharedModule = new DIModule({
             imports: [],
@@ -251,10 +258,9 @@ describe('DIModule', () => {
         expect(bootstrap).not.toThrow();
     });
 
-    it('allows root child to import another root child', () => {
+    it("allows root child to import another root child", () => {
         @Injectable()
-        class StubProvider {
-        }
+        class StubProvider {}
 
         const SharedModule = new DIModule({
             imports: [],
@@ -276,193 +282,130 @@ describe('DIModule', () => {
         expect(bootstrap).not.toThrow();
     });
 
-    it('allows child provider to use another child export', () => {
-        const nestedStubProviderHandleSpy = vi.fn();
-
-        @Injectable()
-        class StubProvider {
-        }
-
-        @Injectable()
-        class StubProvider2 {
-            constructor(readonly stubProvider: StubProvider) {
-            }
-
-            handle(): void {
-                nestedStubProviderHandleSpy(this.stubProvider);
-            }
-        }
-
-        const SharedModule = new DIModule({
-            imports: [],
-            providers: [StubProvider],
-        });
-
-        const ChildModule = new DIModule({
-            imports: [SharedModule],
-            providers: [StubProvider2],
-        });
-
-        const RootModule = new DIModule({
-            imports: [SharedModule, ChildModule],
-            providers: [],
-        });
-
-        RootModule.bootstrap();
-
-        const handle = () => (ChildModule.injector.get(StubProvider2) as StubProvider2).handle();
-        expect(handle).not.toThrow();
-        expect(ChildModule.injector.get(StubProvider)).toEqual(expect.any(StubProvider));
-    });
-
-    it('uses singleton scope', () => {
+    it("uses singleton scope", () => {
         const constructorSpy = vi.fn();
 
         @Injectable()
-        class StubProvider {
+        class ChildStubProvider {
             constructor() {
                 constructorSpy();
             }
         }
 
         @Injectable()
-        class StubProvider2 {
-            constructor(readonly stubProvider: StubProvider) {
-            }
+        class StubProvider1 {
+            constructor(readonly stubProvider: ChildStubProvider) {}
 
-            method(): void {
-            }
+            method(): void {}
+        }
+
+        @Injectable()
+        class StubProvider2 {
+            constructor(readonly stubProvider: ChildStubProvider) {}
+
+            method(): void {}
         }
 
         @Injectable()
         class StubProvider3 {
-            constructor(readonly stubProvider: StubProvider) {
-            }
+            constructor(readonly stubProvider: ChildStubProvider) {}
 
-            method(): void {
-            }
+            method(): void {}
         }
 
         const SharedModule = new DIModule({
             imports: [],
-            providers: [StubProvider],
+            providers: [ChildStubProvider],
+            exports: [ChildStubProvider],
         });
         const ChildModuleA = new DIModule({
             imports: [SharedModule],
-            providers: [StubProvider2],
+            providers: [StubProvider1],
         });
         const ChildModuleB = new DIModule({
+            imports: [SharedModule],
+            providers: [StubProvider2],
+        });
+        const ChildModuleC = new DIModule({
             imports: [SharedModule],
             providers: [StubProvider3],
         });
         const RootModule = new DIModule({
-            imports: [ChildModuleA, ChildModuleB],
+            imports: [ChildModuleA, ChildModuleB, ChildModuleC],
             providers: [],
         });
 
         RootModule.bootstrap();
-        (ChildModuleA.injector.get(StubProvider2) as StubProvider2).method();
-        (ChildModuleB.injector.get(StubProvider3) as StubProvider3).method();
+        ChildModuleA.injector.get(StubProvider1).method();
+        ChildModuleB.injector.get(StubProvider2).method();
+        ChildModuleC.injector.get(StubProvider3).method();
 
         expect(constructorSpy).toHaveBeenCalledTimes(1);
     });
 
-    it('provides from root to leaf nodes', () => {
+    it("provides from multiple modules", () => {
         @Injectable()
-        class StubProvider {
-        }
-
-        @Injectable()
-        class StubProvider2 {
-        }
+        class StubProviderFromParentA {}
 
         @Injectable()
-        class StubProviderFromChild {
-            constructor(readonly stubProvider: StubProvider, readonly stubProvider2: StubProvider2) {
-            }
-
-            method(): void {
-            }
-        }
-
-        const ChildModule = new DIModule({
-            imports: [],
-            providers: [StubProviderFromChild],
-        });
-
-        const ParentModule = new DIModule({
-            imports: [ChildModule],
-            providers: [StubProvider2],
-        });
-
-        const RootModule = new DIModule({
-            imports: [ParentModule],
-            providers: [StubProvider],
-        });
-
-        RootModule.bootstrap();
-
-        expect(ChildModule.injector.get(StubProviderFromChild)).toEqual(expect.any(StubProviderFromChild));
-    });
-
-    it('provides from multiple modules', () => {
-        @Injectable()
-        class StubProviderFromParentA {
-        }
-
-        @Injectable()
-        class StubProviderFromParentB {
-        }
+        class StubProviderFromParentB {}
 
         @Injectable()
         class StubProviderFromChild {
             constructor(
                 readonly stubProvider: StubProviderFromParentA,
-                readonly stubProvider2: StubProviderFromParentB,
-            ) {
-            }
+                readonly stubProvider2: StubProviderFromParentB
+            ) {}
 
-            method(): void {
-            }
+            method(): void {}
         }
-
-        const ChildModule = new DIModule({
-            imports: [],
-            providers: [StubProviderFromChild],
-        });
 
         const ParentModuleA = new DIModule({
             providers: [StubProviderFromParentA],
+            exports: [StubProviderFromParentA],
         });
 
         const ParentModuleB = new DIModule({
             providers: [StubProviderFromParentB],
+            exports: [StubProviderFromParentB],
+        });
+
+        const ChildModule = new DIModule({
+            imports: [ParentModuleA, ParentModuleB],
+            providers: [StubProviderFromChild],
         });
 
         const RootModule = new DIModule({
-            imports: [ChildModule, ParentModuleA, ParentModuleB],
+            imports: [ChildModule],
             providers: [],
         });
 
         RootModule.bootstrap();
 
-        expect(ChildModule.injector.get(StubProviderFromChild)).toEqual(expect.any(StubProviderFromChild));
+        expect(ChildModule.injector.get(StubProviderFromChild)).toEqual(
+            expect.any(StubProviderFromChild)
+        );
     });
 
-    it('stacks multi from different modules', () => {
+    it("stacks multi from different modules", () => {
         @Injectable()
-        class StubProviderFromChildA {
-        }
+        class StubProviderFromChildA {}
 
         @Injectable()
-        class StubProviderFromChildB {
-        }
+        class StubProviderFromChildB {}
 
-        const TOKEN = new InjectionToken('TOKEN');
+        const TOKEN = new InjectionToken("TOKEN");
 
         const ChildModuleA = new DIModule({
             imports: [],
             providers: [
+                {
+                    provide: TOKEN,
+                    useClass: StubProviderFromChildA,
+                    multi: true,
+                },
+            ],
+            exports: [
                 {
                     provide: TOKEN,
                     useClass: StubProviderFromChildA,
@@ -480,6 +423,13 @@ describe('DIModule', () => {
                     multi: true,
                 },
             ],
+            exports: [
+                {
+                    provide: TOKEN,
+                    useClass: StubProviderFromChildB,
+                    multi: true,
+                },
+            ],
         });
 
         const RootModule = new DIModule({
@@ -490,7 +440,47 @@ describe('DIModule', () => {
         RootModule.bootstrap();
 
         expect(RootModule.injector.get(TOKEN)).toEqual(
-            expect.arrayContaining([expect.any(StubProviderFromChildA), expect.any(StubProviderFromChildB)]),
+            expect.arrayContaining([
+                expect.any(StubProviderFromChildA),
+                expect.any(StubProviderFromChildB),
+            ])
         );
+    });
+
+    it("injects factory", () => {
+        let featureId = 1;
+
+        @Injectable()
+        class StubFeature {
+            id = featureId++;
+        }
+
+        @Injectable()
+        class StubFeatureConsumer {
+            private _features: StubFeature[];
+
+            constructor(
+                @InjectFactory(StubFeature)
+                private readonly _featureFactory: Factory<StubFeature>
+            ) {
+                this._features = [
+                    this._featureFactory(),
+                    this._featureFactory(),
+                    this._featureFactory(),
+                ];
+            }
+
+            get featureIds(): number[] {
+                return this._features.map((service) => service.id);
+            }
+        }
+
+        const RootModule = new DIModule({
+            providers: [StubFeature, StubFeatureConsumer],
+        }).bootstrap();
+
+        const featureConsumer = RootModule.injector.get(StubFeatureConsumer);
+
+        expect(featureConsumer.featureIds).toEqual([1, 2, 3]);
     });
 });

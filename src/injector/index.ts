@@ -1,1 +1,1 @@
-export * from './injector';
+export * from './injector.stub';

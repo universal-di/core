@@ -1,14 +1,16 @@
-import {ModuleAlreadyBootstrappedError, ProviderAddedAfterBootstrapError} from '../errors';
-import {Injector} from '../injector';
-import {Provider} from '../models';
+import { DIContainer } from "../di-container/di-container";
+import { ModuleAlreadyBootstrappedError } from "../errors/module-already-bootstrapped.error.js";
+import { ProviderAddedAfterBootstrapError } from "../errors/provider-added-after-bootstrap.error.js";
+import { Provider } from "../models";
 
 export type DIModuleConfig = {
     imports?: DIModule[];
     providers?: Provider[];
+    exports?: Provider[];
 };
 
 export class DIModule {
-    private _injector: Injector = new Injector();
+    private _injector: DIContainer;
     private _bootstrapped = false;
     private readonly _moduleConfig: Required<DIModuleConfig>;
 
@@ -16,19 +18,24 @@ export class DIModule {
         this._moduleConfig = {
             imports: moduleConfig.imports || [],
             providers: moduleConfig.providers || [],
+            exports: moduleConfig.exports || [],
         };
     }
 
-    get injector(): Injector {
+    get injector(): DIContainer {
         return this._injector;
     }
 
-    set injector(injector: Injector) {
+    set injector(injector: DIContainer) {
         this._injector = injector;
     }
 
     get providers(): Provider[] {
         return this._moduleConfig.providers;
+    }
+
+    get exportedProviders(): Provider[] {
+        return this._moduleConfig.exports;
     }
 
     addProvider<T>(provider: Provider<T>, injector = this.injector): void {
@@ -44,45 +51,50 @@ export class DIModule {
             throw new ModuleAlreadyBootstrappedError();
         }
 
-        const globalProviders = this._getModuleProviders();
-
-        this.injector = new Injector();
-        this._registerProviders(globalProviders, this.injector);
-        this._bootstrap(globalProviders, this.injector);
+        this._bootstrap();
 
         return this;
     }
 
-    private _getModuleProviders(): Provider[] {
-        const importedProviders: Provider[] = this._moduleConfig.providers;
-
-        this._moduleConfig.imports.forEach(importedModule => {
-            importedProviders.push(...importedModule._getModuleProviders());
-        });
-
-        return importedProviders;
+    private get _importedProviders(): [Provider, DIContainer][] {
+        return this._moduleConfig.imports.reduce(
+            (memo: [Provider, DIContainer][], importedModule) => {
+                return memo.concat(importedModule._exportedProviders);
+            },
+            []
+        );
     }
 
-    private _bootstrap(providers: Provider[], rootInjector: Injector): void {
+    private get _exportedProviders(): [Provider, DIContainer][] {
+        return this.exportedProviders.map((provider) => [
+            provider,
+            this._injector,
+        ]);
+    }
+
+    private _bootstrap(): void {
         if (this._bootstrapped) {
             return;
         }
 
-        this._moduleConfig.imports.forEach(importedModule => {
-            if (importedModule._bootstrapped) {
-                return;
-            }
-
-            importedModule.injector = new Injector(rootInjector);
-            importedModule._registerProviders(providers, rootInjector);
-            importedModule._bootstrap(providers, rootInjector);
-        });
-
+        this._moduleConfig.imports.forEach((importedModule) =>
+            importedModule._bootstrap()
+        );
+        this._registerProviders();
         this._bootstrapped = true;
     }
 
-    private _registerProviders(providers: Provider[], injector: Injector): void {
-        providers.map(provider => this.addProvider(provider, injector));
+    private _registerProviders(): void {
+        const ownProviders = this._moduleConfig.providers;
+        const importedProviders = this._importedProviders;
+
+        this._injector = new DIContainer();
+        ownProviders.map((provider) =>
+            this.addProvider(provider, this._injector)
+        );
+        importedProviders.forEach(([provider, providerInjector]) =>
+            this.injector.addProvider(provider, providerInjector)
+        );
     }
 }
 

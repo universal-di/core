@@ -1,6 +1,6 @@
-import {Class} from "../types";
+import { Class } from "../types.js";
 
-const INJECTABLE_METADATA_KEY = Symbol('DI:INJECTABLE_KEY');
+const INJECTABLE_METADATA_KEY = Symbol("DI:INJECTABLE_KEY");
 
 export function Injectable() {
     return function <T extends Class<unknown>>(target: T) {

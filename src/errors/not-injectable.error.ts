@@ -1,5 +1,5 @@
-import {ClassProvider} from '../models/provider.model';
-import {getTokenName} from '../utils';
+import { ClassProvider } from '../models/provider.model';
+import { getTokenName } from '../utils';
 
 export class NotInjectableError<T> extends Error {
     constructor(provider: ClassProvider<T>) {

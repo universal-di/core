@@ -1,16 +1,16 @@
-import {Token} from './token.model';
-import {Class} from "../types";
+import { Class } from "../types.js";
+import { Token } from "./token.model";
 
-export interface BaseProvider<T> {
+interface BaseProvider<T> {
     provide: Token<T>;
     multi?: boolean;
 }
 
-export type ClassProvider<T> = BaseProvider<T> & {
+export interface ClassProvider<T> extends BaseProvider<T> {
     useClass: Class<T>;
 }
 
-export type ValueProvider<T> = BaseProvider<T> & {
+export interface ValueProvider<T> extends BaseProvider<T> {
     useValue: T;
 }
 

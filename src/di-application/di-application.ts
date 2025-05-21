@@ -1,33 +1,102 @@
-import {DIModule} from '../di-module/di-module';
-import {DI_MODULE_METADATA_KEY, DIModuleMetadata} from '../di-module/di-module.decorator';
-import {Injector} from '../injector';
-import {Class} from '../types';
+import { isGlobalModule } from "../decorators/global/global.decorator";
+import { getModuleConfig } from "../decorators/module/module.decorator";
+import { DIContainer } from "../di-container/di-container";
+import { DIModule } from "../di-module/di-module";
+import { Class } from "../types.js";
 
 export class DIApplication {
-    private _modules = new Map<Class, DIModule>();
+    private _modules = new Map<Class<any>, DIModule>();
+    private _globalModules = new Map<Class<any>, DIModule>();
 
-    constructor(private readonly RootModuleClass: Class) {
+    constructor(private readonly RootModuleClass: Class<any>) {
+        this._createGlobalModules();
         this._createModule(RootModuleClass);
-        this._modules.get(RootModuleClass)!.bootstrap();
+        this._modules.get(RootModuleClass)?.bootstrap();
+        this._overrideInjectors();
     }
 
-    get rootInjector(): Injector {
-        return this._modules.get(this.RootModuleClass)!.injector;
+    get rootInjector(): DIContainer {
+        return this._getModule(this.RootModuleClass)!.injector;
     }
 
-    private _createModule(moduleClass: Class): void {
-        const moduleConfig = Reflect.getMetadata(DI_MODULE_METADATA_KEY, moduleClass) as DIModuleMetadata;
+    private _createGlobalModules(): void {
+        this._traverse((moduleClass: Class<any>) => {
+            if (!isGlobalModule(moduleClass)) {
+                return;
+            }
 
-        moduleConfig.imports?.forEach(importedModuleClass => this._createModule(importedModuleClass));
-
-        const importedModules =
-            moduleConfig.imports?.map(importedModuleClass => this._modules.get(importedModuleClass)!) ?? [];
-
-        const module = new DIModule({
-            imports: importedModules,
-            providers: [...(moduleConfig.providers ?? [])],
+            this._globalModules.set(
+                moduleClass,
+                this._moduleFactory(moduleClass, false)
+            );
         });
+    }
+
+    private _overrideInjectors(): void {
+        this._traverse((moduleClass: Class<any>) => {
+            moduleClass["injector"] = this._getModule(moduleClass).injector;
+        });
+    }
+
+    private _traverse(callback: (moduleClass: Class<any>) => void): void {
+        const traverse = (moduleClass: Class<any>): void => {
+            const moduleConfig = getModuleConfig(moduleClass);
+            callback(moduleClass);
+
+            moduleConfig.imports?.forEach((importedModuleClass) => {
+                traverse(importedModuleClass);
+            });
+        };
+
+        traverse(this.RootModuleClass);
+    }
+
+    private _createModule(
+        moduleClass: Class<any>,
+        withGlobalProviders = true
+    ): void {
+        if (this._hasModule(moduleClass)) {
+            return;
+        }
+
+        const module = this._moduleFactory(moduleClass, withGlobalProviders);
 
         this._modules.set(moduleClass, module);
+    }
+
+    private _moduleFactory(
+        moduleClass: Class<any>,
+        withGlobalProviders = true
+    ): DIModule {
+        const moduleConfig = getModuleConfig(moduleClass);
+
+        moduleConfig.imports?.forEach((importedModuleClass) =>
+            this._createModule(importedModuleClass)
+        );
+
+        const importedModules =
+            moduleConfig.imports?.map(
+                (importedModuleClass) => this._getModule(importedModuleClass)!
+            ) ?? [];
+
+        return new DIModule({
+            imports: [
+                ...importedModules,
+                ...((withGlobalProviders && this._globalModules.values()) ||
+                    []),
+            ],
+            providers: [...(moduleConfig.providers ?? [])],
+            exports: [...(moduleConfig.exports ?? [])],
+        });
+    }
+
+    private _hasModule(moduleClass: Class<any>): boolean {
+        return (this._modules.has(moduleClass) ||
+            this._globalModules.has(moduleClass))!;
+    }
+
+    private _getModule(moduleClass: Class<any>): DIModule {
+        return (this._modules.get(moduleClass) ||
+            this._globalModules.get(moduleClass))!;
     }
 }

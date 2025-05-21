@@ -1,55 +1,61 @@
-import {Inject, Injectable} from '../decorators';
-import {DIContainer} from './di-container';
-import {InjectionToken} from '../models';
-import {beforeEach, describe, expect, it, vi} from 'vitest';
+/* eslint-disable max-classes-per-file */
+import { Inject, Injectable } from "../decorators";
+import { InjectionToken } from "../models";
+import { DIContainer } from "./di-container";
+import { describe, expect, it, beforeEach, vi } from "vitest";
 
-describe('DIContainer', () => {
+describe("DIContainer", () => {
     let diContainer: DIContainer;
 
-    const providedValueStub = 'stub-value';
-    const MY_CLASS_TOKEN = new InjectionToken('MY_CLASS_TOKEN');
-    const MY_VALUE_TOKEN = new InjectionToken('MY_VALUE_TOKEN');
-    const MY_MULTI_CLASS_TOKEN = new InjectionToken('MY_MULTI_CLASS_TOKEN');
-    const MY_MULTI_VALUE_TOKEN = new InjectionToken('MY_MULTI_VALUE_TOKEN');
+    const providedValueStub = "stub-value";
+    const MY_CLASS_TOKEN = new InjectionToken("MY_CLASS_TOKEN");
+    const MY_VALUE_TOKEN = new InjectionToken("MY_VALUE_TOKEN");
+    const MY_MULTI_CLASS_TOKEN = new InjectionToken("MY_MULTI_CLASS_TOKEN");
+    const MY_MULTI_VALUE_TOKEN = new InjectionToken("MY_MULTI_VALUE_TOKEN");
 
     beforeEach(() => {
         diContainer = new DIContainer();
     });
 
-    it('should create', () => {
+    it("should create", () => {
         expect(diContainer).toBeTruthy();
     });
 
-    describe('registering providers', () => {
+    describe("registering providers", () => {
         @Injectable()
-        class StubProvider {
-        }
+        class StubProvider {}
 
-        it('registers class token provider', () => {
+        it("should register class token provider", () => {
             diContainer.addProvider(StubProvider);
 
-            expect(diContainer['inject'](StubProvider)).toEqual(expect.any(StubProvider));
+            expect(diContainer["get"](StubProvider)).toEqual(
+                expect.any(StubProvider)
+            );
         });
 
-        it('registers class provider', () => {
+        it("should register class provider", () => {
             diContainer.addProvider({
                 provide: MY_CLASS_TOKEN,
                 useClass: StubProvider,
             });
 
-            expect(diContainer['inject'](MY_CLASS_TOKEN)).toEqual(expect.any(StubProvider));
+            expect(diContainer["get"](MY_CLASS_TOKEN)).toEqual(
+                expect.any(StubProvider)
+            );
         });
 
-        it('registers value token provider', () => {
+        it("should register value token provider", () => {
             diContainer.addProvider({
                 provide: MY_VALUE_TOKEN,
                 useValue: providedValueStub,
             });
 
-            expect(diContainer['inject'](MY_VALUE_TOKEN)).toEqual(providedValueStub);
+            expect(diContainer["get"](MY_VALUE_TOKEN)).toEqual(
+                providedValueStub
+            );
         });
 
-        it('registers multi class provider', () => {
+        it("should register multi class provider", () => {
             diContainer.addProvider({
                 provide: MY_MULTI_CLASS_TOKEN,
                 useClass: StubProvider,
@@ -61,13 +67,13 @@ describe('DIContainer', () => {
                 multi: true,
             });
 
-            expect(diContainer['inject'](MY_MULTI_CLASS_TOKEN)).toEqual([
+            expect(diContainer["get"](MY_MULTI_CLASS_TOKEN)).toEqual([
                 expect.any(StubProvider),
                 expect.any(StubProvider),
             ]);
         });
 
-        it('registers multi value token provider', () => {
+        it("should register multi value token provider", () => {
             diContainer.addProvider({
                 provide: MY_MULTI_VALUE_TOKEN,
                 useValue: providedValueStub,
@@ -79,12 +85,15 @@ describe('DIContainer', () => {
                 multi: true,
             });
 
-            expect(diContainer['inject'](MY_MULTI_VALUE_TOKEN)).toEqual([providedValueStub, providedValueStub]);
+            expect(diContainer["get"](MY_MULTI_VALUE_TOKEN)).toEqual([
+                providedValueStub,
+                providedValueStub,
+            ]);
         });
     });
 
-    describe('caching providers', () => {
-        it('caches class token provider', () => {
+    describe("caching providers", () => {
+        it("should cache class token provider", () => {
             const stubProviderConstructedSpy = vi.fn();
 
             @Injectable()
@@ -96,13 +105,13 @@ describe('DIContainer', () => {
 
             diContainer.addProvider(StubProvider);
             diContainer.addProvider(StubProvider);
-            diContainer['inject'](StubProvider);
-            diContainer['inject'](StubProvider);
+            diContainer["get"](StubProvider);
+            diContainer["get"](StubProvider);
 
             expect(stubProviderConstructedSpy).toHaveBeenCalledTimes(1);
         });
 
-        it('caches class provider', () => {
+        it("should cache class provider", () => {
             const stubProviderConstructedSpy = vi.fn();
 
             @Injectable()
@@ -120,32 +129,36 @@ describe('DIContainer', () => {
                 provide: MY_CLASS_TOKEN,
                 useClass: StubProvider,
             });
-            diContainer['inject'](MY_CLASS_TOKEN);
-            diContainer['inject'](MY_CLASS_TOKEN);
+            diContainer["get"](MY_CLASS_TOKEN);
+            diContainer["get"](MY_CLASS_TOKEN);
 
             expect(stubProviderConstructedSpy).toHaveBeenCalledTimes(1);
         });
     });
 
-    describe('resolving injected params values', () => {
-        const nestedStubProviderFieldValue = 'foo';
+    describe("resolving injected params values", () => {
+        const nestedStubProviderFieldValue = "foo";
 
         @Injectable()
         class NestedStubProvider {
             readonly field = nestedStubProviderFieldValue;
         }
 
-        it('resolves injected params values', () => {
+        it("should resolve injected params values", () => {
             const stubProviderCallbackSpy = vi.fn();
-            const myValueTokenStub = 'abc123';
+            const myValueTokenStub = "abc123";
 
             @Injectable()
             class StubProvider {
                 constructor(
-                    @Inject(MY_VALUE_TOKEN) private readonly myValueToken: string,
-                    private readonly _nestedStubProvider: NestedStubProvider,
+                    @Inject(MY_VALUE_TOKEN)
+                    private readonly myValueToken: string,
+                    private readonly _nestedStubProvider: NestedStubProvider
                 ) {
-                    stubProviderCallbackSpy(myValueToken, _nestedStubProvider.field);
+                    stubProviderCallbackSpy(
+                        myValueToken,
+                        _nestedStubProvider.field
+                    );
                 }
             }
 
@@ -155,36 +168,42 @@ describe('DIContainer', () => {
                 useValue: myValueTokenStub,
             });
             diContainer.addProvider(NestedStubProvider);
-            diContainer['inject'](StubProvider);
+            diContainer["get"](StubProvider);
 
-            expect(stubProviderCallbackSpy).toHaveBeenCalledWith(myValueTokenStub, nestedStubProviderFieldValue);
-        });
-
-        it('throws error when injected param (value token) value was not found', () => {
-            @Injectable()
-            class StubProvider {
-                constructor(@Inject(MY_VALUE_TOKEN) private readonly myValueToken: string) {
-                }
-            }
-
-            diContainer.addProvider(StubProvider);
-
-            expect(() => diContainer['inject'](StubProvider)).toThrowError(
-                'No provider for MY_VALUE_TOKEN found in StubProvider',
+            expect(stubProviderCallbackSpy).toHaveBeenCalledWith(
+                myValueTokenStub,
+                nestedStubProviderFieldValue
             );
         });
 
-        it('throws error when injected param (class token) value was not found', () => {
+        it("should throw error when injected param (value token) value was not found", () => {
             @Injectable()
             class StubProvider {
-                constructor(private readonly _nestedStubProvider: NestedStubProvider) {
-                }
+                constructor(
+                    @Inject(MY_VALUE_TOKEN)
+                    private readonly myValueToken: string
+                ) {}
             }
 
             diContainer.addProvider(StubProvider);
 
-            expect(() => diContainer['inject'](StubProvider)).toThrowError(
-                'No provider for NestedStubProvider found in StubProvider',
+            expect(() => diContainer["get"](StubProvider)).toThrowError(
+                "No provider for MY_VALUE_TOKEN found in StubProvider"
+            );
+        });
+
+        it("should throw error when injected param (class token) value was not found", () => {
+            @Injectable()
+            class StubProvider {
+                constructor(
+                    private readonly _nestedStubProvider: NestedStubProvider
+                ) {}
+            }
+
+            diContainer.addProvider(StubProvider);
+
+            expect(() => diContainer["get"](StubProvider)).toThrowError(
+                "No provider for NestedStubProvider found in StubProvider"
             );
         });
     });
